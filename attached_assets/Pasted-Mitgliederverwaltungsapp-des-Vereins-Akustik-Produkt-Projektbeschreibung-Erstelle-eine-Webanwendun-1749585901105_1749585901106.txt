@@ -1,0 +1,48 @@
+Mitgliederverwaltungsapp des Vereins Akustik Produkt
+
+Projektbeschreibung
+
+Erstelle eine Webanwendung zur Verwaltung von Mitgliedern für den Verein Akustik Produkt mit Cyberpunk-Neon-Design (dunkles Theme #1a1a1a, Neon-Cyan #00f7ff, Neon-Pink #ff00ff, animiertes Gitter, Glow-Effekte, Neon-Buttons, Orbitron-Typografie, benutzerdefinierte Scrollbars). Die App umfasst verschiedene Preismodelle (TAGESMITGLIED (kostenlos)PASSIV CHF 10/Jahr, AKTIV CHF 50/Jahr, VIP CHF 50/Monat, SPONSOR CHF 100/Monat), Admin-Mitgliedschaftsauswahl (zu testzwecken), admin-definierbare Vorteile/Goodies, aktualisierte DSGVO (Verein Akustik Produkt, Florastrasse 10, 8610 Uster, info@akustik-produkt.ch), Logo-Verwaltung, Google OAuth-Login, Social-Media-Links (Facebook, Instagram, YouTube, SoundCloud), Rabattcodes, Stripe-Zahlungen, Mitgliederverwaltung (Avatar,  Benutzername, Adresse, Geburtsdatum, email, soundcloudlink), Sponsor-Funktionen (Beamer-Bilder, Werbung), Beamer, Statuten, Webradio , über uns, fotogallerie und sicheren Anmeldeprozess. 
+Anforderungen
+
+Funktionen
+
+Preismodelle:
+
+Kategorien: TAGESMITGLIED (kostenlos) PASSIV (CHF 10/Jahr), AKTIV (CHF 50/Jahr), VIP (CHF 50/Monat), SPONSOR (CHF 100/Monat).
+
+Admin kann Preise (Betrag, CHF, Intervall) im Dashboard anpassen
+
+
+Admin kann im Dashboard die Mitgliedschaft jeden einzelnen benutzers ändern, anpassen, löschen
+
+
+Vorteile/Goodies
+
+
+Admin-definierbar für jede Kategorie, max. 200 Zeichen pro Vorteil.
+
+
+
+Gespeichert in membership_benefits, angezeigt auf Landingpage unter „Preise“.
+
+
+
+Default: PASSIV („10% Rabatt auf Events“), AKTIV („Exklusive Sticker“), VIP („VIP-Eventzugang“), SPONSOR („Werbeplatz auf Landingpage“).
+
+
+
+Validierung: Text 1-200 Zeichen, nicht leer.
+
+
+
+DSGVO:
+
+Text auf Landingpage („DSGVO“-Reiter):
+
+Der Verein Akustik Produkt, Florastrasse 10, 8610 Uster, info@akustik-produkt.ch, verarbeitet Ihre Daten gemäß dem Schweizer Datenschutzgesetz. Wir erfassen Vorname, Nachname, E-Mail, Adresse, PLZ, Ort, Avatar, SoundCloud-Links und Werbedaten zur Verwaltung Ihrer Mitgliedschaft und Werbung. Daten werden nicht an Dritte weitergegeben, außer gesetzlich erforderlich. Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung. Cookies werden für Sitzungsverwaltung und Funktionalität verwendet (Akzeptanz erforderlich).
+
+
+Cookie-Akzeptanz erforderlich bei Registrierung,  
+
+jeder user hat ein dashboard
