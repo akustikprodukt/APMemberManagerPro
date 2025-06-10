@@ -36,6 +36,8 @@ export const users = pgTable("users", {
   city: varchar("city"),
   soundcloudUrl: varchar("soundcloud_url"),
   membershipTier: varchar("membership_tier").notNull().default("TAGESMITGLIED"),
+  isDjActive: boolean("is_dj_active").notNull().default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -68,6 +70,46 @@ export const cookieConsents = pgTable("cookie_consents", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+// Web radio settings
+export const webRadioSettings = pgTable("web_radio_settings", {
+  id: serial("id").primaryKey(),
+  radioUrl: varchar("radio_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  djMode: boolean("dj_mode").notNull().default(false),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Gallery images
+export const galleryImages = pgTable("gallery_images", {
+  id: serial("id").primaryKey(),
+  imageUrl: varchar("image_url").notNull(),
+  title: varchar("title"),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// News posts
+export const newsPosts = pgTable("news_posts", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  authorId: varchar("author_id").references(() => users.id),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// News comments
+export const newsComments = pgTable("news_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => newsPosts.id),
+  userId: varchar("user_id").references(() => users.id),
+  content: text("content").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
@@ -79,6 +121,18 @@ export type MembershipBenefit = typeof membershipBenefits.$inferSelect;
 
 export type InsertCookieConsent = typeof cookieConsents.$inferInsert;
 export type CookieConsent = typeof cookieConsents.$inferSelect;
+
+export type InsertWebRadioSettings = typeof webRadioSettings.$inferInsert;
+export type WebRadioSettings = typeof webRadioSettings.$inferSelect;
+
+export type InsertGalleryImage = typeof galleryImages.$inferInsert;
+export type GalleryImage = typeof galleryImages.$inferSelect;
+
+export type InsertNewsPost = typeof newsPosts.$inferInsert;
+export type NewsPost = typeof newsPosts.$inferSelect;
+
+export type InsertNewsComment = typeof newsComments.$inferInsert;
+export type NewsComment = typeof newsComments.$inferSelect;
 
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
@@ -92,6 +146,27 @@ export const insertMembershipTierSchema = createInsertSchema(membershipTiers).om
 });
 
 export const insertMembershipBenefitSchema = createInsertSchema(membershipBenefits).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWebRadioSettingsSchema = createInsertSchema(webRadioSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertGalleryImageSchema = createInsertSchema(galleryImages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNewsPostSchema = createInsertSchema(newsPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNewsCommentSchema = createInsertSchema(newsComments).omit({
   id: true,
   createdAt: true,
 });

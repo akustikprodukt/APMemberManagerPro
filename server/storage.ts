@@ -3,6 +3,10 @@ import {
   membershipTiers,
   membershipBenefits,
   cookieConsents,
+  webRadioSettings,
+  galleryImages,
+  newsPosts,
+  newsComments,
   type User,
   type UpsertUser,
   type MembershipTier,
@@ -11,6 +15,14 @@ import {
   type InsertMembershipBenefit,
   type InsertCookieConsent,
   type CookieConsent,
+  type WebRadioSettings,
+  type InsertWebRadioSettings,
+  type GalleryImage,
+  type InsertGalleryImage,
+  type NewsPost,
+  type InsertNewsPost,
+  type NewsComment,
+  type InsertNewsComment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -21,6 +33,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getUsersBySoundcloud(): Promise<User[]>;
   
   // Membership tier operations
   getMembershipTiers(): Promise<MembershipTier[]>;
@@ -37,6 +50,28 @@ export interface IStorage {
   // Cookie consent operations
   recordCookieConsent(consent: InsertCookieConsent): Promise<CookieConsent>;
   getCookieConsent(userId: string): Promise<CookieConsent | undefined>;
+  
+  // Web radio operations
+  getWebRadioSettings(): Promise<WebRadioSettings | undefined>;
+  updateWebRadioSettings(settings: Partial<InsertWebRadioSettings>): Promise<WebRadioSettings>;
+  
+  // Gallery operations
+  getGalleryImages(): Promise<GalleryImage[]>;
+  createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage>;
+  updateGalleryImage(id: number, updates: Partial<InsertGalleryImage>): Promise<GalleryImage>;
+  deleteGalleryImage(id: number): Promise<void>;
+  
+  // News operations
+  getNewsPosts(): Promise<NewsPost[]>;
+  getNewsPost(id: number): Promise<NewsPost | undefined>;
+  createNewsPost(post: InsertNewsPost): Promise<NewsPost>;
+  updateNewsPost(id: number, updates: Partial<InsertNewsPost>): Promise<NewsPost>;
+  deleteNewsPost(id: number): Promise<void>;
+  
+  // News comments operations
+  getNewsComments(postId: number): Promise<NewsComment[]>;
+  createNewsComment(comment: InsertNewsComment): Promise<NewsComment>;
+  deleteNewsComment(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,6 +107,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async getUsersBySoundcloud(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.isDjActive, true));
   }
 
   // Membership tier operations
@@ -133,6 +172,92 @@ export class DatabaseStorage implements IStorage {
   async getCookieConsent(userId: string): Promise<CookieConsent | undefined> {
     const [consent] = await db.select().from(cookieConsents).where(eq(cookieConsents.userId, userId));
     return consent;
+  }
+
+  // Web radio operations
+  async getWebRadioSettings(): Promise<WebRadioSettings | undefined> {
+    const [settings] = await db.select().from(webRadioSettings).limit(1);
+    return settings;
+  }
+
+  async updateWebRadioSettings(settings: Partial<InsertWebRadioSettings>): Promise<WebRadioSettings> {
+    const existing = await this.getWebRadioSettings();
+    if (existing) {
+      const [updated] = await db
+        .update(webRadioSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(webRadioSettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(webRadioSettings).values(settings).returning();
+      return created;
+    }
+  }
+
+  // Gallery operations
+  async getGalleryImages(): Promise<GalleryImage[]> {
+    return await db.select().from(galleryImages).where(eq(galleryImages.isActive, true));
+  }
+
+  async createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage> {
+    const [newImage] = await db.insert(galleryImages).values(image).returning();
+    return newImage;
+  }
+
+  async updateGalleryImage(id: number, updates: Partial<InsertGalleryImage>): Promise<GalleryImage> {
+    const [updated] = await db
+      .update(galleryImages)
+      .set(updates)
+      .where(eq(galleryImages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteGalleryImage(id: number): Promise<void> {
+    await db.update(galleryImages).set({ isActive: false }).where(eq(galleryImages.id, id));
+  }
+
+  // News operations
+  async getNewsPosts(): Promise<NewsPost[]> {
+    return await db.select().from(newsPosts).where(eq(newsPosts.isActive, true));
+  }
+
+  async getNewsPost(id: number): Promise<NewsPost | undefined> {
+    const [post] = await db.select().from(newsPosts).where(eq(newsPosts.id, id));
+    return post;
+  }
+
+  async createNewsPost(post: InsertNewsPost): Promise<NewsPost> {
+    const [newPost] = await db.insert(newsPosts).values(post).returning();
+    return newPost;
+  }
+
+  async updateNewsPost(id: number, updates: Partial<InsertNewsPost>): Promise<NewsPost> {
+    const [updated] = await db
+      .update(newsPosts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(newsPosts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteNewsPost(id: number): Promise<void> {
+    await db.update(newsPosts).set({ isActive: false }).where(eq(newsPosts.id, id));
+  }
+
+  // News comments operations
+  async getNewsComments(postId: number): Promise<NewsComment[]> {
+    return await db.select().from(newsComments).where(eq(newsComments.postId, postId));
+  }
+
+  async createNewsComment(comment: InsertNewsComment): Promise<NewsComment> {
+    const [newComment] = await db.insert(newsComments).values(comment).returning();
+    return newComment;
+  }
+
+  async deleteNewsComment(id: number): Promise<void> {
+    await db.update(newsComments).set({ isActive: false }).where(eq(newsComments.id, id));
   }
 }
 

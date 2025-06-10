@@ -2,7 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertMembershipTierSchema, insertMembershipBenefitSchema, updateUserSchema } from "@shared/schema";
+import { 
+  insertMembershipTierSchema, 
+  insertMembershipBenefitSchema, 
+  updateUserSchema,
+  insertWebRadioSettingsSchema,
+  insertGalleryImageSchema,
+  insertNewsPostSchema,
+  insertNewsCommentSchema
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -136,6 +144,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Web radio routes
+  app.get('/api/radio/settings', async (req, res) => {
+    try {
+      const settings = await storage.getWebRadioSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching radio settings:", error);
+      res.status(500).json({ message: "Failed to fetch radio settings" });
+    }
+  });
+
+  app.put('/api/radio/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const updates = insertWebRadioSettingsSchema.partial().parse(req.body);
+      const settings = await storage.updateWebRadioSettings(updates);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating radio settings:", error);
+      res.status(500).json({ message: "Failed to update radio settings" });
+    }
+  });
+
+  app.get('/api/radio/dj-users', async (req, res) => {
+    try {
+      const djUsers = await storage.getUsersBySoundcloud();
+      res.json(djUsers);
+    } catch (error) {
+      console.error("Error fetching DJ users:", error);
+      res.status(500).json({ message: "Failed to fetch DJ users" });
+    }
+  });
+
+  // Gallery routes
+  app.get('/api/gallery', async (req, res) => {
+    try {
+      const images = await storage.getGalleryImages();
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching gallery images:", error);
+      res.status(500).json({ message: "Failed to fetch gallery images" });
+    }
+  });
+
+  app.post('/api/gallery', isAuthenticated, async (req: any, res) => {
+    try {
+      const imageData = insertGalleryImageSchema.parse(req.body);
+      const image = await storage.createGalleryImage(imageData);
+      res.json(image);
+    } catch (error) {
+      console.error("Error creating gallery image:", error);
+      res.status(500).json({ message: "Failed to create gallery image" });
+    }
+  });
+
+  app.put('/api/gallery/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = insertGalleryImageSchema.partial().parse(req.body);
+      const image = await storage.updateGalleryImage(parseInt(id), updates);
+      res.json(image);
+    } catch (error) {
+      console.error("Error updating gallery image:", error);
+      res.status(500).json({ message: "Failed to update gallery image" });
+    }
+  });
+
+  app.delete('/api/gallery/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteGalleryImage(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting gallery image:", error);
+      res.status(500).json({ message: "Failed to delete gallery image" });
+    }
+  });
+
+  // News routes
+  app.get('/api/news', async (req, res) => {
+    try {
+      const posts = await storage.getNewsPosts();
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching news posts:", error);
+      res.status(500).json({ message: "Failed to fetch news posts" });
+    }
+  });
+
+  app.post('/api/news', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const postData = insertNewsPostSchema.parse({ ...req.body, authorId: userId });
+      const post = await storage.createNewsPost(postData);
+      res.json(post);
+    } catch (error) {
+      console.error("Error creating news post:", error);
+      res.status(500).json({ message: "Failed to create news post" });
+    }
+  });
+
+  app.put('/api/news/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = insertNewsPostSchema.partial().parse(req.body);
+      const post = await storage.updateNewsPost(parseInt(id), updates);
+      res.json(post);
+    } catch (error) {
+      console.error("Error updating news post:", error);
+      res.status(500).json({ message: "Failed to update news post" });
+    }
+  });
+
+  app.delete('/api/news/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteNewsPost(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting news post:", error);
+      res.status(500).json({ message: "Failed to delete news post" });
+    }
+  });
+
+  // News comments routes
+  app.get('/api/news/:id/comments', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const comments = await storage.getNewsComments(parseInt(id));
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching news comments:", error);
+      res.status(500).json({ message: "Failed to fetch news comments" });
+    }
+  });
+
+  app.post('/api/news/:id/comments', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+      const commentData = insertNewsCommentSchema.parse({
+        ...req.body,
+        postId: parseInt(id),
+        userId,
+      });
+      const comment = await storage.createNewsComment(commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error creating news comment:", error);
+      res.status(500).json({ message: "Failed to create news comment" });
+    }
+  });
+
+  app.delete('/api/news/comments/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteNewsComment(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting news comment:", error);
+      res.status(500).json({ message: "Failed to delete news comment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -171,6 +342,129 @@ async function initializeDefaultData() {
       const existing = await storage.getBenefitsForTier(tierName);
       if (existing.length === 0) {
         await storage.updateBenefitsForTier(tierName, benefits);
+      }
+    }
+
+    // Initialize test users for each membership tier
+    const testUsers = [
+      {
+        id: "test-tagesmitglied",
+        email: "tages@akustik-produkt.ch",
+        firstName: "Tages",
+        lastName: "Mitglied",
+        membershipTier: "TAGESMITGLIED",
+        isAdmin: false,
+        isDjActive: false,
+        soundcloudUrl: "https://soundcloud.com/tagesuser"
+      },
+      {
+        id: "test-passiv",
+        email: "passiv@akustik-produkt.ch",
+        firstName: "Passiv",
+        lastName: "User",
+        membershipTier: "PASSIV",
+        isAdmin: false,
+        isDjActive: true,
+        soundcloudUrl: "https://soundcloud.com/passivuser"
+      },
+      {
+        id: "test-aktiv",
+        email: "aktiv@akustik-produkt.ch",
+        firstName: "Aktiv",
+        lastName: "Member",
+        membershipTier: "AKTIV",
+        isAdmin: false,
+        isDjActive: true,
+        soundcloudUrl: "https://soundcloud.com/aktivmember"
+      },
+      {
+        id: "test-vip",
+        email: "vip@akustik-produkt.ch",
+        firstName: "VIP",
+        lastName: "Elite",
+        membershipTier: "VIP",
+        isAdmin: false,
+        isDjActive: true,
+        soundcloudUrl: "https://soundcloud.com/vipelite"
+      },
+      {
+        id: "test-sponsor",
+        email: "sponsor@akustik-produkt.ch",
+        firstName: "Sponsor",
+        lastName: "Premium",
+        membershipTier: "SPONSOR",
+        isAdmin: true,
+        isDjActive: true,
+        soundcloudUrl: "https://soundcloud.com/sponsorpremium"
+      }
+    ];
+
+    for (const user of testUsers) {
+      const existing = await storage.getUser(user.id);
+      if (!existing) {
+        await storage.upsertUser(user);
+      }
+    }
+
+    // Initialize default web radio settings
+    const radioSettings = await storage.getWebRadioSettings();
+    if (!radioSettings) {
+      await storage.updateWebRadioSettings({
+        radioUrl: "https://stream.akustik-produkt.ch/live",
+        isActive: true,
+        djMode: false
+      });
+    }
+
+    // Initialize default gallery images
+    const galleryImages = await storage.getGalleryImages();
+    if (galleryImages.length === 0) {
+      const defaultImages = [
+        {
+          imageUrl: "https://picsum.photos/800/600?random=1",
+          title: "Cyberpunk Event 2024",
+          description: "Unser erstes großes Cyberpunk-Event mit neon Lights und elektronischer Musik."
+        },
+        {
+          imageUrl: "https://picsum.photos/800/600?random=2",
+          title: "DJ Night Special",
+          description: "Eine unvergessliche Nacht mit den besten DJs der elektronischen Szene."
+        },
+        {
+          imageUrl: "https://picsum.photos/800/600?random=3",
+          title: "Studio Sessions",
+          description: "Behind the scenes Aufnahmen aus unserem hochmodernen Studio."
+        }
+      ];
+
+      for (const image of defaultImages) {
+        await storage.createGalleryImage(image);
+      }
+    }
+
+    // Initialize default news posts
+    const newsPosts = await storage.getNewsPosts();
+    if (newsPosts.length === 0) {
+      const defaultPosts = [
+        {
+          title: "Willkommen im Cyberpunk Universum",
+          content: "Heute starten wir offiziell unsere neue Mitgliederverwaltung im futuristischen Cyberpunk-Design. Erlebe die Zukunft der elektronischen Musik mit uns!",
+          authorId: "test-sponsor"
+        },
+        {
+          title: "Neue DJ Features verfügbar",
+          content: "Ab sofort können alle Mitglieder ihre SoundCloud-Links hinterlegen und als DJ aktiv werden. Aktiviere den DJ-Modus in deinem Profil!",
+          authorId: "test-sponsor"
+        },
+        {
+          title: "Galerie ist online",
+          content: "Schaut euch unsere neue Bildergalerie an! Hier findet ihr Impressionen von unseren Events und Studio-Sessions.",
+          authorId: "test-sponsor"
+        }
+      ];
+
+      for (const post of defaultPosts) {
+        await storage.createNewsPost(post);
       }
     }
   } catch (error) {
