@@ -23,6 +23,18 @@ export default function Navbar() {
         Preise
       </button>
       <button 
+        onClick={() => scrollToSection('gallery')}
+        className="hover:text-neon-cyan transition-colors duration-300"
+      >
+        Galerie
+      </button>
+      <button 
+        onClick={() => scrollToSection('news')}
+        className="hover:text-neon-cyan transition-colors duration-300"
+      >
+        News
+      </button>
+      <button 
         onClick={() => scrollToSection('dsgvo')}
         className="hover:text-neon-cyan transition-colors duration-300"
       >

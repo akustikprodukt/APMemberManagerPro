@@ -26,7 +26,12 @@ import {
   Plus,
   Settings,
   UserCog,
-  LogOut
+  LogOut,
+  Radio,
+  Image,
+  Newspaper,
+  Music,
+  Upload
 } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 

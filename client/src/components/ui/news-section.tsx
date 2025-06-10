@@ -18,7 +18,7 @@ import {
   Clock, 
   User, 
   Send,
-  News,
+  Newspaper,
   Calendar
 } from "lucide-react";
 
@@ -72,7 +72,7 @@ export default function NewsSection() {
           {newsPosts.length === 0 && (
             <Card className="glow-border bg-cyber-gray/30 backdrop-blur-sm border-0">
               <CardContent className="p-8 text-center">
-                <News className="mx-auto h-16 w-16 text-gray-500 mb-4" />
+                <Newspaper className="mx-auto h-16 w-16 text-gray-500 mb-4" />
                 <p className="text-gray-400">Noch keine News verfügbar</p>
               </CardContent>
             </Card>

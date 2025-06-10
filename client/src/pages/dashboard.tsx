@@ -25,7 +25,9 @@ import {
   Crown, 
   Gem,
   LogOut,
-  Zap
+  Zap,
+  Music,
+  Headphones
 } from "lucide-react";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
@@ -92,6 +94,38 @@ export default function Dashboard() {
       toast({
         title: "Fehler",
         description: "Profil konnte nicht aktualisiert werden.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleDjMutation = useMutation({
+    mutationFn: async (isDjActive: boolean) => {
+      await apiRequest("PUT", "/api/user/profile", { isDjActive });
+    },
+    onSuccess: () => {
+      toast({
+        title: "DJ Status aktualisiert",
+        description: "Ihr DJ-Status wurde erfolgreich geändert.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/radio/dj-users"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Nicht autorisiert",
+          description: "Sie werden abgemeldet. Loggen Sie sich erneut ein...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Fehler",
+        description: "DJ-Status konnte nicht aktualisiert werden.",
         variant: "destructive",
       });
     },
@@ -342,6 +376,47 @@ export default function Dashboard() {
                       ))}
                     </div>
                   </div>
+
+                  {/* DJ Mode Toggle */}
+                  {user?.soundcloudUrl && (
+                    <div className="mt-6 pt-4 border-t border-cyber-gray">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Music className="h-4 w-4 text-neon-pink" />
+                          <span className="text-sm font-bold text-gray-400">DJ MODUS</span>
+                        </div>
+                        <Badge 
+                          className={`${
+                            user?.isDjActive 
+                              ? 'bg-neon-pink text-cyber-dark' 
+                              : 'bg-gray-600 text-gray-300'
+                          }`}
+                        >
+                          {user?.isDjActive ? 'AKTIV' : 'INAKTIV'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Aktiviere den DJ-Modus, um deine SoundCloud-Tracks im Web-Radio zu teilen
+                      </p>
+                      <Button
+                        onClick={() => toggleDjMutation.mutate(!user?.isDjActive)}
+                        disabled={toggleDjMutation.isPending}
+                        className={`w-full ${
+                          user?.isDjActive 
+                            ? 'cyber-button-pink hover-glow' 
+                            : 'cyber-button hover-glow'
+                        }`}
+                        size="sm"
+                      >
+                        {toggleDjMutation.isPending ? (
+                          <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                        ) : (
+                          <Headphones className="mr-2 h-4 w-4" />
+                        )}
+                        {user?.isDjActive ? 'DJ DEAKTIVIEREN' : 'DJ AKTIVIEREN'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

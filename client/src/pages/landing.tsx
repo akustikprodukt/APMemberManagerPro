@@ -110,6 +110,13 @@ export default function Landing() {
         <div className="absolute top-1/2 left-20 w-2 h-2 bg-neon-cyan rounded-full animate-ping"></div>
       </section>
 
+      {/* Web Radio Section */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <WebRadio />
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -223,6 +230,12 @@ export default function Landing() {
           </Card>
         </div>
       </section>
+
+      {/* Gallery Section */}
+      <GallerySection />
+
+      {/* News Section */}
+      <NewsSection />
 
       <Footer />
     </div>
